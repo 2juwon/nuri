@@ -1,0 +1,35 @@
+import asyncio, sys
+import os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from browser import *
+async def main():
+    async with async_playwright() as p:
+        b, page, errs = await open_page(p)
+        # 2쪽 첫 목록 항목 맨 앞에서 Backspace
+        li = page.locator('#doc ol li').nth(1)
+        await li.scroll_into_view_if_needed()
+        box = await li.bounding_box()
+        await page.mouse.click(box['x']+2, box['y']+box['height']-6)
+        await page.keyboard.press('Home')
+        await page.keyboard.press('Backspace')
+        await page.wait_for_timeout(300)
+        print('li count', await page.evaluate("document.querySelectorAll('#doc ol li').length"), 'gaps', await page.evaluate("document.querySelectorAll('#doc .ng-gap,.ng-pushed').length"))
+        await page.keyboard.press('Control+z'); await page.wait_for_timeout(200)
+        print('after undo li', await page.evaluate("document.querySelectorAll('#doc ol li').length"))
+        # 조합 입력 흉내 (CDP IME)
+        cdp = await page.context.new_cdp_session(page)
+        await page.click('#doc h1'); await page.keyboard.press('End')
+        await cdp.send('Input.imeSetComposition', {'text':'ㅎ','selectionStart':1,'selectionEnd':1})
+        await cdp.send('Input.imeSetComposition', {'text':'하','selectionStart':1,'selectionEnd':1})
+        await cdp.send('Input.imeSetComposition', {'text':'한','selectionStart':1,'selectionEnd':1})
+        await cdp.send('Input.insertText', {'text':'한'})
+        await cdp.send('Input.imeSetComposition', {'text':'ㄱ','selectionStart':1,'selectionEnd':1})
+        await cdp.send('Input.imeSetComposition', {'text':'글','selectionStart':1,'selectionEnd':1})
+        await cdp.send('Input.insertText', {'text':'글'})
+        await page.wait_for_timeout(300)
+        print('h1:', await page.text_content('#doc h1'))
+        # 쪽 나누기 + Enter
+        await page.keyboard.press('Control+Enter'); await page.wait_for_timeout(300)
+        print('pages', await page.evaluate("NG.editor.pages"), 'hr', await page.evaluate("document.querySelectorAll('#doc hr.ng-pb').length"))
+        print(errs)
+        await b.close()
+asyncio.run(main())

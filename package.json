@@ -1,0 +1,23 @@
+{
+  "name": "nuri",
+  "version": "1.0.0",
+  "description": "누리글 — 한글(hwp·hwpx) 문서를 웹에서 열고 고치고 저장하는 무료 문서 편집기",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "build": "node build.js",
+    "test": "node test/roundtrip.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "private": true,
+  "devDependencies": {
+    "jszip": "3.10.1",
+    "pako": "2.1.0",
+    "@xmldom/xmldom": "^0.9.12",
+    "html2canvas": "1.4.1",
+    "jspdf": "2.5.1"
+  }
+}

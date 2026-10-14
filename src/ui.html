@@ -1,0 +1,421 @@
+<title>누리글</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="한글(hwp·hwpx) 문서를 열고 고치고 저장하는 무료 웹 문서 편집기">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&family=Nanum+Gothic:wght@400;700&family=Nanum+Myeongjo:wght@400;700;800&display=swap">
+<style>
+/* 배치: 위 도구 띠(제목줄·서식 도구) / 가운데 책상 위 종이 / 아래 상태 줄. 종이는 늘 흰색. */
+:root {
+  --desk: #DFE3E0;
+  --chrome: #F6F7F5;
+  --raised: #FFFFFF;
+  --ink: #1C2421;
+  --muted: #5C6964;
+  --line: #CBD2CE;
+  --accent: #1E6B58;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #D7ECE4;
+  --hover: #E9EDEA;
+  --danger: #B3402F;
+  --shadow: 0 1px 2px rgba(20, 35, 30, .12), 0 6px 24px rgba(20, 35, 30, .10);
+  --font-ui: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --font-logo: "Nanum Myeongjo", "Noto Serif KR", serif;
+  --font-doc: "함초롬바탕", "Nanum Myeongjo", "Noto Serif KR", serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --desk: #161B19; --chrome: #20272A; --raised: #283033; --ink: #E3E9E6; --muted: #9AA7A2; --line: #384341;
+    --accent: #5DBFA3; --accent-ink: #0E1A16; --accent-soft: #1F3B34; --hover: #2D3739; --danger: #E58A78;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 28px rgba(0, 0, 0, .35); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --desk: #161B19; --chrome: #20272A; --raised: #283033; --ink: #E3E9E6; --muted: #9AA7A2; --line: #384341;
+  --accent: #5DBFA3; --accent-ink: #0E1A16; --accent-soft: #1F3B34; --hover: #2D3739; --danger: #E58A78;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 28px rgba(0, 0, 0, .35); color-scheme: dark;
+}
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--desk); color: var(--ink); font-family: var(--font-ui); font-size: 14px; overflow: hidden; }
+* { box-sizing: border-box; }
+button, input, select { font: inherit; color: inherit; }
+.app { display: flex; flex-direction: column; height: 100%; }
+
+/* 제목줄 */
+.top { display: flex; align-items: center; gap: 10px; background: var(--chrome); border-bottom: 1px solid var(--line);
+  padding-left: max(12px, env(safe-area-inset-left, 0px)); padding-right: max(12px, env(safe-area-inset-right, 0px)); padding-block: 6px; min-height: 48px; }
+.logo { font-family: var(--font-logo); font-weight: 800; font-size: 20px; letter-spacing: -.02em; color: var(--accent); display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.logo svg { width: 22px; height: 22px; }
+.docname { flex: 1 1 160px; min-width: 0; max-width: 420px; border: 1px solid transparent; background: transparent; border-radius: 6px; padding: 5px 8px; font-weight: 500; font-size: 15px; text-overflow: ellipsis; }
+.docname:hover { border-color: var(--line); }
+.docname:focus { outline: none; border-color: var(--accent); background: var(--raised); }
+.savestate { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.top .sp { flex: 1; }
+.btn { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border-radius: 7px; border: 1px solid var(--line); background: var(--raised); cursor: pointer; white-space: nowrap; font-weight: 500; }
+.btn:hover { background: var(--hover); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.primary:hover { filter: brightness(1.06); }
+.btn svg { width: 16px; height: 16px; flex: none; }
+.btn:focus-visible, .tb:focus-visible, .sel:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* 서식 도구 */
+.tools { background: var(--chrome); border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; align-items: center; gap: 2px 4px;
+  padding-left: max(8px, env(safe-area-inset-left, 0px)); padding-right: max(8px, env(safe-area-inset-right, 0px)); padding-block: 5px; }
+.grp { display: flex; align-items: center; gap: 1px; padding: 0 4px; border-right: 1px solid var(--line); }
+.grp:last-child { border-right: 0; }
+.tb { height: 32px; min-width: 32px; padding: 0 6px; border: 1px solid transparent; border-radius: 6px; background: transparent; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px; font-size: 13px; }
+.tb:hover { background: var(--hover); }
+.tb.on { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 35%, transparent); color: var(--ink); }
+.tb:disabled { opacity: .4; cursor: default; background: transparent; }
+.tb svg { width: 18px; height: 18px; flex: none; }
+.tb .lbl { font-size: 12.5px; }
+.tb.glyph { font-family: var(--font-logo); font-size: 16px; }
+.sel { height: 32px; border: 1px solid var(--line); border-radius: 6px; background: var(--raised); padding: 0 6px; font-size: 13px; }
+.sel.font { width: 124px; }
+.sel.style { width: 92px; }
+.sizebox { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 6px; background: var(--raised); height: 32px; }
+.sizebox input { width: 44px; border: 0; background: transparent; text-align: center; height: 100%; font-variant-numeric: tabular-nums; }
+.sizebox input:focus { outline: none; }
+.sizebox button { border: 0; background: transparent; width: 22px; height: 100%; cursor: pointer; color: var(--muted); }
+.sizebox button:hover { color: var(--ink); }
+.colorbtn { position: relative; }
+.colorbtn .bar { position: absolute; left: 7px; right: 7px; bottom: 4px; height: 3px; border-radius: 1px; }
+
+/* 상황 도구(표·그림) */
+.ctx { background: var(--accent-soft); border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 2px; flex-wrap: wrap;
+  padding-left: max(8px, env(safe-area-inset-left, 0px)); padding-right: max(8px, env(safe-area-inset-right, 0px)); padding-block: 3px; }
+.ctx .title { font-size: 12px; font-weight: 600; color: var(--accent); padding: 0 8px 0 4px; letter-spacing: .02em; }
+.ctx .tb:hover { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+
+/* 책상과 종이 */
+.desk { flex: 1; overflow: auto; position: relative; overscroll-behavior: contain; }
+.paperwrap { padding: 28px 24px 60px; display: flex; justify-content: center; min-width: min-content; }
+#paper { position: relative; flex: none; }
+#sheets { position: absolute; inset: 0; pointer-events: none; }
+.ng-sheet { position: absolute; left: 0; right: 0; background: #FFFFFF; box-shadow: 0 0 0 1px rgba(0,0,0,.06), 0 3px 14px rgba(20,35,30,.16); }
+.ng-guide { position: absolute; pointer-events: none;
+  background:
+    linear-gradient(#A9B8B2, #A9B8B2) left top / 12px 1px no-repeat, linear-gradient(#A9B8B2, #A9B8B2) left top / 1px 12px no-repeat,
+    linear-gradient(#A9B8B2, #A9B8B2) right top / 12px 1px no-repeat, linear-gradient(#A9B8B2, #A9B8B2) right top / 1px 12px no-repeat,
+    linear-gradient(#A9B8B2, #A9B8B2) left bottom / 12px 1px no-repeat, linear-gradient(#A9B8B2, #A9B8B2) left bottom / 1px 12px no-repeat,
+    linear-gradient(#A9B8B2, #A9B8B2) right bottom / 12px 1px no-repeat, linear-gradient(#A9B8B2, #A9B8B2) right bottom / 1px 12px no-repeat;
+  margin: -6px; padding: 6px; box-sizing: content-box; }
+.ng-hf { position: absolute; font: 9pt/1.5 var(--font-doc); color: #222; white-space: pre-wrap; overflow: hidden; display: flex; flex-direction: column; }
+.ng-hdr { justify-content: flex-start; }
+.ng-ftr { justify-content: flex-end; }
+.ng-pnum { position: absolute; font: 9pt var(--font-doc); color: #222; }
+#paper.ng-fit { width: 100%; max-width: 860px; margin: 0 auto; background: #FFFFFF; box-shadow: 0 0 0 1px rgba(0,0,0,.06); min-height: 100%; }
+#paper.ng-fit #sheets { display: none; }
+#paper.ng-fit #doc .ng-table { display: block; overflow-x: auto; max-width: 100%; }
+#paper.ng-fit #doc img { max-width: 100%; height: auto !important; }
+.desk.fitmode .paperwrap { padding: 0; display: block; min-width: 0; }
+
+/* 문서 본문 (종이 위 글자는 언제나 검은 잉크) */
+#doc { position: relative; z-index: 1; outline: none; color: #000; font-family: var(--font-doc); font-size: 10pt; line-height: 1.6;
+  text-align: justify; white-space: pre-wrap; overflow-wrap: break-word; tab-size: 53px; caret-color: #000; display: flow-root; }
+#doc p, #doc h1, #doc h2, #doc h3, #doc h4, #doc blockquote { margin: 0; }
+#doc h1 { font-size: 16pt; font-weight: 700; line-height: 1.5; margin: 0 0 4pt; }
+#doc h2 { font-size: 13pt; font-weight: 700; line-height: 1.5; margin: 6pt 0 2pt; }
+#doc h3 { font-size: 11pt; font-weight: 700; line-height: 1.5; margin: 4pt 0 2pt; }
+#doc ul, #doc ol { margin: 0; padding-left: 2.2em; }
+#doc ::selection { background: rgba(30, 107, 88, .28); }
+#doc .ng-table { border-collapse: collapse; table-layout: fixed; margin: 1.2mm 0; }
+#doc .ng-table td, #doc .ng-table th { padding: 0.5mm 1.8mm; vertical-align: middle; min-width: 8px; overflow-wrap: anywhere; }
+#doc td.ng-sel { background-image: linear-gradient(rgba(30,107,88,.26), rgba(30,107,88,.26)); }
+#doc .ng-pushed { padding-top: var(--ng-push) !important; }
+#doc .ng-gap { display: block; user-select: none; pointer-events: none; }
+#doc tr.ng-gap td { padding: 0 !important; border: none !important; background: transparent !important; }
+#doc hr.ng-pb { border: 0; border-top: 1px dashed #8FA9A0; margin: 5px 0; height: 0; position: relative; }
+#doc .ng-box { border: 0.12mm solid #000; padding: 2mm 3mm; margin: 1.2mm 0; }
+#doc img { vertical-align: bottom; max-width: none; }
+#doc img.ng-img-left { float: left; margin: 0 3mm 1.5mm 0; }
+#doc img.ng-img-right { float: right; margin: 0 0 1.5mm 3mm; }
+#doc img.ng-img-block { display: block; margin: 1.5mm 0; }
+#doc img.ng-center { margin-left: auto; margin-right: auto; }
+#doc img.ng-right { margin-left: auto; }
+#doc img.ng-img-sel { outline: 1px solid var(--accent); }
+#overlay { position: absolute; z-index: 3; pointer-events: none; }
+.ng-ov-box { position: absolute; inset: 0; border: 1.5px solid #1E6B58; }
+.ng-ov-h { position: absolute; width: 12px; height: 12px; background: #FFFFFF; border: 2px solid #1E6B58; border-radius: 2px; pointer-events: auto; touch-action: none; }
+.ng-ov-h[data-h="nw"] { left: -7px; top: -7px; cursor: nwse-resize; }
+.ng-ov-h[data-h="ne"] { right: -7px; top: -7px; cursor: nesw-resize; }
+.ng-ov-h[data-h="sw"] { left: -7px; bottom: -7px; cursor: nesw-resize; }
+.ng-ov-h[data-h="se"] { right: -7px; bottom: -7px; cursor: nwse-resize; }
+.ng-ov-size { position: absolute; left: 0; top: calc(100% + 6px); font: 11px var(--font-ui); background: #1E6B58; color: #FFFFFF; padding: 1px 6px; border-radius: 3px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+/* 상태 줄 */
+.status { display: flex; align-items: center; gap: 14px; background: var(--chrome); border-top: 1px solid var(--line); font-size: 12px; color: var(--muted);
+  padding-left: max(12px, env(safe-area-inset-left, 0px)); padding-right: max(12px, env(safe-area-inset-right, 0px)); padding-block: 3px; min-height: 32px; font-variant-numeric: tabular-nums; }
+.status .sp { flex: 1; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { border: 0; background: transparent; padding: 3px 9px; cursor: pointer; font-size: 12px; color: var(--muted); }
+.seg button.on { background: var(--accent-soft); color: var(--ink); font-weight: 500; }
+.zoom { display: inline-flex; align-items: center; gap: 2px; }
+.zoom button { width: 24px; height: 24px; border: 0; background: transparent; border-radius: 5px; cursor: pointer; color: var(--ink); font-size: 15px; }
+.zoom button:hover { background: var(--hover); }
+.zoom output { min-width: 44px; text-align: center; color: var(--ink); }
+
+/* 펼침 메뉴·대화 상자 */
+.pop { position: fixed; z-index: 50; background: var(--raised); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow); padding: 6px; min-width: 180px; max-width: calc(100vw - 16px); }
+.pop .mi { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; border: 0; background: transparent; padding: 8px 10px; border-radius: 6px; cursor: pointer; }
+.pop .mi:hover, .pop .mi:focus-visible { background: var(--hover); outline: none; }
+.pop .mi svg { width: 18px; height: 18px; flex: none; color: var(--muted); }
+.pop .mi small { display: block; color: var(--muted); font-size: 11.5px; margin-top: 1px; }
+.pop .sep { height: 1px; background: var(--line); margin: 4px 2px; }
+.swatches { display: grid; grid-template-columns: repeat(10, 22px); gap: 4px; padding: 4px; }
+.sw { width: 22px; height: 22px; border-radius: 4px; border: 1px solid rgba(0,0,0,.15); cursor: pointer; }
+.sw:hover { transform: scale(1.12); }
+.swrow { display: flex; gap: 8px; align-items: center; padding: 6px 4px 2px; font-size: 12.5px; }
+.swrow label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.swrow input[type=color] { width: 28px; height: 22px; border: 1px solid var(--line); padding: 0; background: none; }
+.gridpick { display: grid; grid-template-columns: repeat(10, 20px); gap: 3px; padding: 6px; }
+.gridpick span { width: 20px; height: 20px; border: 1px solid var(--line); border-radius: 3px; background: var(--raised); }
+.gridpick span.on { background: var(--accent-soft); border-color: var(--accent); }
+.gridlabel { text-align: center; font-size: 12.5px; color: var(--muted); padding: 2px 0 6px; font-variant-numeric: tabular-nums; }
+
+.dlg-back { position: fixed; inset: 0; z-index: 60; background: rgba(15, 25, 22, .38); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.dlg { background: var(--raised); border-radius: 14px; box-shadow: var(--shadow); width: min(480px, 100%); max-height: calc(100% - 24px); overflow: auto; }
+.dlg h2 { margin: 0; font-size: 16px; font-weight: 600; padding: 16px 20px 6px; }
+.dlg .body { padding: 8px 20px 4px; display: grid; gap: 12px; }
+.dlg .foot { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 20px 18px; flex-wrap: wrap; }
+.dlg p.note { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.field { display: grid; gap: 4px; }
+.field > span { font-size: 12.5px; color: var(--muted); }
+.field input, .field select, .field textarea { border: 1px solid var(--line); border-radius: 7px; background: var(--chrome); padding: 7px 9px; width: 100%; }
+.field textarea { resize: vertical; min-height: 54px; font-family: var(--font-doc); }
+.field input:focus, .field select:focus, .field textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.row3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.unit { position: relative; }
+.unit input { padding-right: 34px; font-variant-numeric: tabular-nums; }
+.unit::after { content: attr(data-u); position: absolute; right: 10px; bottom: 8px; font-size: 12px; color: var(--muted); }
+.choice { display: flex; gap: 6px; flex-wrap: wrap; }
+.choice button { border: 1px solid var(--line); background: var(--chrome); border-radius: 7px; padding: 6px 10px; cursor: pointer; }
+.choice button.on { border-color: var(--accent); background: var(--accent-soft); font-weight: 500; }
+.paperprev { display: flex; justify-content: center; padding: 4px 0; }
+.paperprev div { background: #FFFFFF; border: 1px solid var(--line); position: relative; box-shadow: 0 2px 6px rgba(0,0,0,.08); }
+.paperprev div i { position: absolute; border: 1px dashed #8FA9A0; }
+
+.findbar { position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); top: 120px; z-index: 20; background: var(--raised); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); padding: 10px; display: grid; gap: 8px; width: min(340px, calc(100% - 32px)); }
+.findbar .r { display: flex; gap: 6px; }
+.findbar input { flex: 1; min-width: 0; border: 1px solid var(--line); border-radius: 7px; background: var(--chrome); padding: 6px 8px; }
+.findbar input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.findbar .msg { font-size: 12px; color: var(--muted); min-height: 16px; }
+
+.toast { position: fixed; left: 50%; bottom: calc(46px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 80; background: var(--ink); color: var(--chrome); padding: 10px 16px; border-radius: 10px; box-shadow: var(--shadow); max-width: calc(100% - 32px); font-size: 13.5px; line-height: 1.5; }
+.dropzone { position: fixed; inset: 0; z-index: 70; background: rgba(30,107,88,.16); border: 3px dashed var(--accent); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 600; color: var(--accent); pointer-events: none; }
+.busy { position: fixed; inset: 0; z-index: 90; background: rgba(15,25,22,.3); display: flex; align-items: center; justify-content: center; }
+.busy div { background: var(--raised); padding: 16px 22px; border-radius: 12px; box-shadow: var(--shadow); font-variant-numeric: tabular-nums; }
+
+@media (max-width: 760px) {
+  .tools, .ctx { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .tools::-webkit-scrollbar, .ctx::-webkit-scrollbar { display: none; }
+  .grp { flex: none; }
+  .paperwrap { padding: 16px 12px 40px; }
+  .hide-sm { display: none !important; }
+  .btn { padding: 0 9px; }
+  .logo span { display: none; }
+  .docname { font-size: 14px; min-width: 96px; }
+  .top { gap: 6px; }
+  .status { gap: 10px; }
+  .dlg-back { align-items: flex-end; padding: 0; }
+  .dlg { border-radius: 16px 16px 0 0; width: 100%; padding-bottom: env(safe-area-inset-bottom, 0px); }
+}
+@media (max-width: 420px) { .hide-xs { display: none !important; } }
+@media (prefers-reduced-motion: no-preference) {
+  .pop, .dlg { animation: rise .14s ease-out; }
+  @keyframes rise { from { transform: translateY(4px); opacity: .6; } to { transform: none; opacity: 1; } }
+}
+@media print {
+  html, body { height: auto !important; overflow: visible !important; background: #FFFFFF !important; }
+  .top, .tools, .ctx, .status, .findbar, .pop, .dlg-back, .toast, #overlay, #sheets { display: none !important; }
+  .app { display: block; height: auto; }
+  .desk { overflow: visible !important; position: static; }
+  .paperwrap { padding: 0 !important; display: block !important; }
+  #paper { zoom: 1 !important; width: auto !important; height: auto !important; box-shadow: none !important; }
+  #doc { padding: 0 !important; min-height: 0 !important; }
+  #doc .ng-gap { height: 0 !important; break-before: page; }
+  #doc tr.ng-gap { break-before: page; }
+  #doc tr.ng-gap td { height: 0 !important; }
+  #doc .ng-pushed { padding-top: 0 !important; margin-top: 0 !important; break-before: page; }
+  #doc div.ng-gap + * { margin-top: 0 !important; }
+  #doc hr.ng-pb { display: none; }
+  #doc td.ng-sel { background-image: none; }
+  #doc img.ng-img-sel { outline: none; }
+}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-logo" viewBox="0 0 24 24"><path d="M5 3h10l4 4v14H5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M15 3v4h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8.5 12.5h7M8.5 16h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 7 4 12l5 5M4 12h10a6 6 0 0 1 0 12h-2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" transform="translate(0 -3)"/></symbol>
+    <symbol id="i-redo" viewBox="0 0 24 24"><path d="m15 7 5 5-5 5M20 12H10a6 6 0 0 0 0 12h2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" transform="translate(0 -3)"/></symbol>
+    <symbol id="i-al" viewBox="0 0 24 24"><path d="M4 6h16M4 10h10M4 14h16M4 18h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-ac" viewBox="0 0 24 24"><path d="M4 6h16M7 10h10M4 14h16M7 18h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-ar" viewBox="0 0 24 24"><path d="M4 6h16M10 10h10M4 14h16M10 18h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-aj" viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h16M4 18h11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-ad" viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h16M4 18h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M4 18h2M18 18h2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></symbol>
+    <symbol id="i-ul" viewBox="0 0 24 24"><circle cx="5" cy="7" r="1.4" fill="currentColor"/><circle cx="5" cy="12" r="1.4" fill="currentColor"/><circle cx="5" cy="17" r="1.4" fill="currentColor"/><path d="M9 7h11M9 12h11M9 17h11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-ol" viewBox="0 0 24 24"><text x="2.5" y="9" font-size="7" font-family="sans-serif" fill="currentColor">1</text><text x="2.5" y="14.5" font-size="7" font-family="sans-serif" fill="currentColor">2</text><text x="2.5" y="20" font-size="7" font-family="sans-serif" fill="currentColor">3</text><path d="M9 7h11M9 12h11M9 17h11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-indent" viewBox="0 0 24 24"><path d="M10 6h10M10 10h10M10 14h10M4 18h16M4 8l3 2.5L4 13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-outdent" viewBox="0 0 24 24"><path d="M10 6h10M10 10h10M10 14h10M4 18h16M7 8l-3 2.5L7 13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-lh" viewBox="0 0 24 24"><path d="M11 6h9M11 12h9M11 18h9M5 4v16M3 6.5 5 4l2 2.5M3 17.5 5 20l2-2.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-para" viewBox="0 0 24 24"><path d="M10 4v16M15 4v16M17 4H9.5a4 4 0 0 0 0 8H10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-table" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 9.5h17M3.5 14.5h17M9.5 9.5v10M15 9.5v10" stroke="currentColor" stroke-width="1.5"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="9" cy="10" r="1.8" fill="currentColor"/><path d="m4 18 5-5 3.5 3.5L15 14l5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-shape" viewBox="0 0 24 24"><rect x="3.5" y="9.5" width="10" height="10" rx="1" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="15.5" cy="8.5" r="5" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+    <symbol id="i-pb" viewBox="0 0 24 24"><path d="M6 3v5h12V3M6 21v-5h12v5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M3 12h3M9 12h2M13 12h2M18 12h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-hf" viewBox="0 0 24 24"><rect x="5" y="3.5" width="14" height="17" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 7h8M8 17h8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M8 11h8M8 13.5h5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity=".5"/></symbol>
+    <symbol id="i-page" viewBox="0 0 24 24"><rect x="5" y="3.5" width="14" height="17" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="8" y="6.5" width="8" height="11" fill="none" stroke="currentColor" stroke-width="1.2" stroke-dasharray="2 1.5"/></symbol>
+    <symbol id="i-find" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m15 15 5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-open" viewBox="0 0 24 24"><path d="M3.5 7V5.5h6l2 2h9V18a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-save" viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19.5h14" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-new" viewBox="0 0 24 24"><path d="M6 3.5h8l4 4v13H6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 10.5v6M9 13.5h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-print" viewBox="0 0 24 24"><path d="M7 8V3.5h10V8M7 16.5H4.5V9.5a1.5 1.5 0 0 1 1.5-1.5h12a1.5 1.5 0 0 1 1.5 1.5v7H17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M7 13.5h10v7H7z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="m7 10 5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-clear" viewBox="0 0 24 24"><path d="M6 5h12M12 5l-3 14M4 19l16-14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-pen" viewBox="0 0 24 24"><path d="m14 4 6 6-8 8H6v-6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M4 20h7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-rowA" viewBox="0 0 24 24"><rect x="3.5" y="11" width="17" height="9" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 3v6M9 6h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-rowB" viewBox="0 0 24 24"><rect x="3.5" y="4" width="17" height="9" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 15v6M9 18h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-colL" viewBox="0 0 24 24"><rect x="11" y="3.5" width="9" height="17" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3 12h6M6 9v6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-colR" viewBox="0 0 24 24"><rect x="4" y="3.5" width="9" height="17" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M15 12h6M18 9v6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-delRow" viewBox="0 0 24 24"><rect x="3.5" y="7.5" width="17" height="9" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="m9.5 9.5 5 5M14.5 9.5l-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-delCol" viewBox="0 0 24 24"><rect x="7.5" y="3.5" width="9" height="17" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="m9.5 9.5 5 5M14.5 9.5l-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-merge" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5 12h4M15 12h4M7.5 10l2 2-2 2M16.5 10l-2 2 2 2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-split" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 5.5v13" stroke="currentColor" stroke-width="1.6" stroke-dasharray="2 1.6"/></symbol>
+    <symbol id="i-fill" viewBox="0 0 24 24"><path d="M5 12 11 6l7 7-6 6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M19 15.5s2 2.4 2 3.5a2 2 0 0 1-4 0c0-1.1 2-3.5 2-3.5z" fill="currentColor"/></symbol>
+    <symbol id="i-border" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M12 4v16M4 12h16" stroke="currentColor" stroke-width="1.2" stroke-dasharray="1.5 1.5"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M5 7h14M10 7V4.5h4V7M7 7l1 13h8l1-13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-va" viewBox="0 0 24 24"><path d="M4 4h16M4 20h16M12 7v10M9 10l3-3 3 3M9 14l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-fitw" viewBox="0 0 24 24"><path d="M3 5v14M21 5v14M7 12h10M9.5 9.5 7 12l2.5 2.5M14.5 9.5 17 12l-2.5 2.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-eqw" viewBox="0 0 24 24"><rect x="3.5" y="6.5" width="17" height="11" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9.2 6.5v11M14.8 6.5v11" stroke="currentColor" stroke-width="1.6"/></symbol>
+    <symbol id="i-wInline" viewBox="0 0 24 24"><path d="M3 18h4M17 18h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><rect x="8" y="9" width="8" height="9" rx="1" fill="currentColor" opacity=".8"/><path d="M3 6h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-wLeft" viewBox="0 0 24 24"><rect x="3" y="5" width="8" height="9" rx="1" fill="currentColor" opacity=".8"/><path d="M14 6h7M14 10h7M14 14h7M3 18h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-wRight" viewBox="0 0 24 24"><rect x="13" y="5" width="8" height="9" rx="1" fill="currentColor" opacity=".8"/><path d="M3 6h7M3 10h7M3 14h7M3 18h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-wCenter" viewBox="0 0 24 24"><path d="M3 4.5h18M3 19.5h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><rect x="8" y="7.5" width="8" height="9" rx="1" fill="currentColor" opacity=".8"/></symbol>
+    <symbol id="i-orig" viewBox="0 0 24 24"><path d="M4 9V4h5M20 15v5h-5M4 4l6 6M20 20l-6-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-stroke" viewBox="0 0 24 24"><path d="M4 18 18 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M4 21h16" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></symbol>
+  </defs>
+</svg>
+
+<div class="app" id="app">
+  <header class="top">
+    <div class="logo"><svg><use href="#i-logo"/></svg><span>누리글</span></div>
+    <input id="docName" class="docname" aria-label="문서 이름" value="누리글 사용 안내" spellcheck="false">
+    <span id="saveState" class="savestate hide-sm"></span>
+    <div class="sp"></div>
+    <button class="btn" id="bNew" title="새 문서"><svg><use href="#i-new"/></svg><span class="hide-sm">새 문서</span></button>
+    <button class="btn" id="bOpen" title="한글·HWPX 파일 열기 (Ctrl+O)"><svg><use href="#i-open"/></svg><span class="hide-xs">열기</span></button>
+    <button class="btn" id="bPrint" title="인쇄 (Ctrl+P)" hidden><svg><use href="#i-print"/></svg><span class="hide-sm">인쇄</span></button>
+    <button class="btn primary" id="bSave" title="저장 (Ctrl+S)"><svg><use href="#i-save"/></svg><span>저장</span><svg><use href="#i-down"/></svg></button>
+    <input type="file" id="fileIn" accept=".hwp,.hwpx,.html,.htm,.txt" hidden>
+    <input type="file" id="imgIn" accept="image/*" hidden>
+  </header>
+
+  <div class="tools" id="tools" role="toolbar" aria-label="서식 도구">
+    <div class="grp">
+      <button class="tb" data-cmd="undo" title="되돌리기 (Ctrl+Z)"><svg><use href="#i-undo"/></svg></button>
+      <button class="tb" data-cmd="redo" title="다시 실행 (Ctrl+Y)"><svg><use href="#i-redo"/></svg></button>
+    </div>
+    <div class="grp">
+      <select class="sel style" id="selStyle" title="문단 스타일">
+        <option value="P">바탕글</option><option value="H1">제목 1</option><option value="H2">제목 2</option><option value="H3">제목 3</option>
+      </select>
+      <select class="sel font" id="selFont" title="글꼴"></select>
+      <div class="sizebox" title="글자 크기(pt)">
+        <button data-cmd="sizeDown" aria-label="글자 작게">−</button>
+        <input id="inSize" value="10" inputmode="decimal" list="sizes" aria-label="글자 크기">
+        <button data-cmd="sizeUp" aria-label="글자 크게">+</button>
+      </div>
+      <datalist id="sizes"><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option><option>14</option><option>16</option><option>18</option><option>20</option><option>24</option><option>28</option><option>36</option></datalist>
+    </div>
+    <div class="grp">
+      <button class="tb glyph" data-cmd="bold" title="진하게 (Ctrl+B)"><b>가</b></button>
+      <button class="tb glyph" data-cmd="italic" title="기울임 (Ctrl+I)"><i>가</i></button>
+      <button class="tb glyph" data-cmd="underline" title="밑줄 (Ctrl+U)"><u>가</u></button>
+      <button class="tb glyph" data-cmd="strike" title="취소선"><s>가</s></button>
+      <button class="tb hide-sm" data-cmd="sup" title="위 첨자">x<sup style="font-size:9px">2</sup></button>
+      <button class="tb hide-sm" data-cmd="sub" title="아래 첨자">x<sub style="font-size:9px">2</sub></button>
+      <button class="tb colorbtn" id="bColor" title="글자 색"><span class="glyph" style="font-family:var(--font-logo);font-size:16px;font-weight:700">가</span><span class="bar" id="colorBar" style="background:#C0392B"></span></button>
+      <button class="tb colorbtn" id="bHilite" title="형광펜"><svg><use href="#i-pen"/></svg><span class="bar" id="hiliteBar" style="background:#FFE45C"></span></button>
+      <button class="tb" data-cmd="removeFormat" title="모양 지우기"><svg><use href="#i-clear"/></svg></button>
+    </div>
+    <div class="grp">
+      <button class="tb" data-align="justify" title="양쪽 정렬"><svg><use href="#i-aj"/></svg></button>
+      <button class="tb" data-align="left" title="왼쪽 정렬"><svg><use href="#i-al"/></svg></button>
+      <button class="tb" data-align="center" title="가운데 정렬"><svg><use href="#i-ac"/></svg></button>
+      <button class="tb" data-align="right" title="오른쪽 정렬"><svg><use href="#i-ar"/></svg></button>
+      <button class="tb hide-sm" data-align="distribute" title="배분 정렬"><svg><use href="#i-ad"/></svg></button>
+      <button class="tb" id="bLine" title="줄 간격"><svg><use href="#i-lh"/></svg><span class="lbl" id="lhLabel">160%</span></button>
+    </div>
+    <div class="grp">
+      <button class="tb" data-cmd="ul" title="글머리표"><svg><use href="#i-ul"/></svg></button>
+      <button class="tb" data-cmd="ol" title="문단 번호"><svg><use href="#i-ol"/></svg></button>
+      <button class="tb" data-cmd="outdent" title="내어 쓰기"><svg><use href="#i-outdent"/></svg></button>
+      <button class="tb" data-cmd="indent" title="들여 쓰기"><svg><use href="#i-indent"/></svg></button>
+      <button class="tb" data-cmd="paraDlg" title="문단 모양"><svg><use href="#i-para"/></svg></button>
+    </div>
+    <div class="grp">
+      <button class="tb" id="bTable" title="표 만들기"><svg><use href="#i-table"/></svg><span class="lbl">표</span></button>
+      <button class="tb" data-cmd="image" title="그림 넣기"><svg><use href="#i-image"/></svg><span class="lbl">그림</span></button>
+      <button class="tb" id="bShape" title="도형 넣기"><svg><use href="#i-shape"/></svg><span class="lbl">도형</span></button>
+      <button class="tb" data-cmd="pageBreak" title="쪽 나누기 (Ctrl+Enter)"><svg><use href="#i-pb"/></svg><span class="lbl hide-sm">쪽 나누기</span></button>
+    </div>
+    <div class="grp">
+      <button class="tb" data-cmd="pageDlg" title="쪽 설정(용지·여백)"><svg><use href="#i-page"/></svg><span class="lbl">쪽 설정</span></button>
+      <button class="tb" data-cmd="hfDlg" title="머리말·꼬리말·쪽 번호"><svg><use href="#i-hf"/></svg><span class="lbl">머리말</span></button>
+      <button class="tb" data-cmd="find" title="찾기·바꾸기 (Ctrl+F)"><svg><use href="#i-find"/></svg></button>
+    </div>
+  </div>
+
+  <div class="ctx" id="ctxTable" hidden role="toolbar" aria-label="표 도구">
+    <span class="title">표</span>
+    <button class="tb" data-t="rowAbove" title="위에 줄 넣기"><svg><use href="#i-rowA"/></svg></button>
+    <button class="tb" data-t="rowBelow" title="아래에 줄 넣기"><svg><use href="#i-rowB"/></svg></button>
+    <button class="tb" data-t="colLeft" title="왼쪽에 칸 넣기"><svg><use href="#i-colL"/></svg></button>
+    <button class="tb" data-t="colRight" title="오른쪽에 칸 넣기"><svg><use href="#i-colR"/></svg></button>
+    <button class="tb" data-t="delRow" title="줄 지우기"><svg><use href="#i-delRow"/></svg></button>
+    <button class="tb" data-t="delCol" title="칸 지우기"><svg><use href="#i-delCol"/></svg></button>
+    <button class="tb" data-t="merge" id="bMerge" title="셀 합치기 (셀을 끌어서 여러 개 고른 뒤)"><svg><use href="#i-merge"/></svg><span class="lbl">합치기</span></button>
+    <button class="tb" id="bSplit" title="셀 나누기"><svg><use href="#i-split"/></svg><span class="lbl">나누기</span></button>
+    <button class="tb colorbtn" id="bCellBg" title="셀 배경색"><svg><use href="#i-fill"/></svg><span class="bar" id="cellBar" style="background:#DCEBF7"></span></button>
+    <button class="tb" id="bBorder" title="테두리"><svg><use href="#i-border"/></svg></button>
+    <button class="tb" id="bVAlign" title="세로 정렬"><svg><use href="#i-va"/></svg></button>
+    <button class="tb" data-t="fitWidth" title="표 너비를 본문 너비에 맞추기"><svg><use href="#i-fitw"/></svg></button>
+    <button class="tb" data-t="equalCols" title="칸 너비를 똑같이"><svg><use href="#i-eqw"/></svg></button>
+    <button class="tb" data-t="delTable" title="표 지우기"><svg><use href="#i-trash"/></svg></button>
+  </div>
+
+  <div class="ctx" id="ctxImg" hidden role="toolbar" aria-label="그림 도구">
+    <span class="title" id="imgTitle">그림</span>
+    <button class="tb" data-w="inline" title="글자처럼 취급"><svg><use href="#i-wInline"/></svg><span class="lbl hide-sm">글자처럼</span></button>
+    <button class="tb" data-w="left" title="왼쪽에 두고 글 두르기"><svg><use href="#i-wLeft"/></svg><span class="lbl hide-sm">왼쪽</span></button>
+    <button class="tb" data-w="right" title="오른쪽에 두고 글 두르기"><svg><use href="#i-wRight"/></svg><span class="lbl hide-sm">오른쪽</span></button>
+    <button class="tb" data-w="center" title="가운데 한 줄 차지"><svg><use href="#i-wCenter"/></svg><span class="lbl hide-sm">가운데</span></button>
+    <button class="tb" data-i="orig" id="bOrig" title="원래 크기"><svg><use href="#i-orig"/></svg></button>
+    <button class="tb colorbtn" id="bShapeFill" title="채우기 색" hidden><svg><use href="#i-fill"/></svg><span class="bar" id="shapeFillBar"></span></button>
+    <button class="tb colorbtn" id="bShapeLine" title="선 색" hidden><svg><use href="#i-stroke"/></svg><span class="bar" id="shapeLineBar"></span></button>
+    <button class="tb" id="bShapeW" title="선 굵기" hidden><span class="lbl">선 굵기</span><svg><use href="#i-down"/></svg></button>
+    <button class="tb" data-i="del" title="지우기"><svg><use href="#i-trash"/></svg></button>
+  </div>
+
+  <main class="desk" id="desk">
+    <div class="paperwrap">
+      <div id="paper"><div id="sheets"></div><div id="doc" role="textbox" aria-multiline="true" aria-label="문서 본문"></div><div id="overlay"></div></div>
+    </div>
+  </main>
+
+  <footer class="status">
+    <span id="stPage">1 / 1쪽</span>
+    <span id="stChars" class="hide-sm">글자 0</span>
+    <span id="stPaper" class="hide-sm">A4</span>
+    <span class="sp"></span>
+    <div class="seg" role="group" aria-label="보기">
+      <button id="vPage" class="on" title="종이 모양 그대로 쪽마다 보기">쪽 보기</button>
+      <button id="vFit" title="화면 폭에 맞춰 이어서 보기">화면 맞춤</button>
+    </div>
+    <div class="zoom" id="zoomBox"><button id="zOut" aria-label="축소">−</button><output id="zVal">100%</output><button id="zIn" aria-label="확대">+</button></div>
+  </footer>
+</div>
